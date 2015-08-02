@@ -75,7 +75,8 @@ valid_file_options = {
     "sources": None,
     "includes": None,
     "libs": None,
-    "entry point": None, 
+    "entry point": None,
+    "custom options": None,
     "architecture": ["x86", "x64", "x86/x64"],
     "subsystem": ["windows", "console"],
     "cleanup": [True, False],
@@ -817,6 +818,8 @@ def BuildFile(path, build_info, build_config, project_config, file_config, file_
     defines[name] = value;
   # Parse entry point option if provided (default is None: let the linker decide):
   entry_point = GetOption("entry point", None, file_config, project_config, build_config);
+  # Parse custom option to pass to compiler or linker if provided (default is None)
+  customoptions = GetOption("custom options", None, file_config, project_config, build_config);
 
   # Optionally run prebuild commands:
   if not DoPrebuildCommands(file_config, "      "):
@@ -871,6 +874,8 @@ def BuildFile(path, build_info, build_config, project_config, file_config, file_
         cl_arguments += ["/MT"];
       else:
         cl_arguments += ["/MD"];
+    if customoptions:
+      cl_arguments += customoptions;
     if target_is_exe or target_is_dll:
       cl_arguments += ["/Fe\"%s\"" % file_name];
       if target_is_exe:
@@ -903,6 +908,8 @@ def BuildFile(path, build_info, build_config, project_config, file_config, file_
       link_arguments += ["/entry:%s" % entry_point];
     if debug:
       link_arguments += ["/DEBUG"];
+    if customoptions:
+      link_arguments += customoptions;
     if target_is_exe:
       link_arguments += ["/subsystem:%s" % subsystem];
     elif target_is_dll:
